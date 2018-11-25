@@ -50,5 +50,4 @@ professional software engineers and data scientists do:
     * what solutions you've tried
 1. Ask the staff in OH
 
-### Test
 
