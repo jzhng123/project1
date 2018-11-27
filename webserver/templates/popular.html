@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+    Project 1 
+  </title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+
+  </head>
+<body>
+<div>
+  <ul class = 'nav'>
+    <li>
+      <a href="/" >Home</a>
+    </li>
+    <li>
+      <a href="/search" >History</a>
+    </li>
+    <li>
+      <a href="/battle" >Battle</a>
+    </li>
+    <li>
+      <a href="/popular" >Popular</a>
+    </li>
+  </ul>
+</div>
+<center><h1>Popular Repository Ranked by Number of Stars</h1></center>
+<div>
+    <ul class= 'popular-list'>
+         {% for n in rank %}
+      <li class='popular-item'>
+        <div class='popular-rank'>#{{n['rank']}}</div>
+        <ul class='space-list-items'>
+          <li>
+            <img
+              class='avatar'
+              src={{n['avatar_url']}}
+              alt={'Avatar for' + {{n['user']}}}
+            />
+          </li>
+          <li{{n['user']}}</li>
+          <li>Repository Name: {{n['repo_name']}}</li>
+          <li>Language: {{n['language']}}</li>
+          <li>Number of Folk: {{n['folk']}}</li>
+          <li>Number of Star: {{n['star']}}</li>
+          <li>Number of Pull Request: {{n['pull_requests']}}</li>
+          <li>Number of issues: {{n['issues']}}</li>
+        </ul>
+      </li>
+          {% endfor %}  
+    </ul>
+</div>
+
+</body>
+<script>
+  console.log({{rank|tojson}})
+</script>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+    Project 1 
+  </title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+
+  <style>
+  table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+  }
+  th, td {
+      padding: 15px;
+  }
+  </style>
+  </head>
+<body>
+<div>
+  <ul class = 'nav'>
+    <li>
+      <a href="/" >Home</a>
+    </li>
+    <li>
+      <a href="/search" >History</a>
+    </li>
+    <li>
+      <a href="/battle" >Battle</a>
+    </li>
+    <li>
+      <a href="/popular" >Popular</a>
+    </li>
+  </ul>
+</div>
+<center><h1>Battle History</h1></center>
+
+<table style="width:100%">
+  <tr>
+    <th>Battle_id</th>
+    <th>UserName</th> 
+    <th>UserScore</th>
+    <th>EnemyName</th>
+    <th>EnmyScore</th>
+    <th>Winner</th>
+  </tr>
+  {% for n in data %}
+  <tr>
+    <td>{{n['battle_id']}}</td>
+    <td>{{n['user_login']}}</td>
+    <td>{{n['user_score']}}</td>
+    <td>{{n['enemy_login']}}</td>
+    <td>{{n['enemy_score']}}</td>
+    <td>{{n['winner']}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+
+
+</body>
+</html>

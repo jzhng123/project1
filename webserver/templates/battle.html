@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+    Project 1 
+  </title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  </head>
+<body>
+<div>
+	<ul class = 'nav'>
+	  <li>
+	    <a href="/" >Home</a>
+	  </li>
+	  <li>
+	    <a href="/search" >History</a>
+	  </li>
+	  <li>
+	    <a href="/battle" >Battle</a>
+	  </li>
+	  <li>
+	    <a href="/popular" >Popular</a>
+	  </li>
+	</ul>
+</div>
+
+<center><h1>W4111 Github Battle Project</h1></center>
+<div>
+	<div class="row" style="margin-top:100px">
+		<form class='column' method="POST" action="/getPlayers" >
+			<label class='header' htmlFor='player1'>
+				Player One
+			</label>
+
+			<input id='player1' placeholder='github username' onchange="validation1(this.value)" 
+				   type='text' autoComplete='off' name = "playerOne"
+			/><span style="color:red" id="errorname1"></span>
+			
+
+			<label class='header' htmlFor='player2'>
+				Player Two
+			</label>
+
+			<input id='player2' placeholder='github username' onchange="validation2(this.value)" 
+				   type='text' autoComplete='off' name = "playerTwo"
+			/><span style="color:red" id="errorname2"></span>
+			<input
+				class='button'
+				type="submit"
+				value='submit'>
+			</input>
+		</form>
+	</div>
+	<div style="margin-top:25px">
+		<dialog id="favDialog">
+		  <form method="POST" action="/add">
+			<label>Github username
+			</label>
+			<input type='text' name="login" onchange="validation3(this.value)" />
+			<span style="color:red" id="errorname3"></span>
+			<label>Name
+			</label>
+			<input  type='text' name="name" />
+			<label>
+				Number Public of Repos
+			</label>
+			<input  type='number' name="repos"/>
+			<label>
+				Number of Followers
+			</label>
+			<input  type='number' name="followers"/>
+			<label>
+				Number of Followings
+			</label>
+			<input type='number' name="followings"/>
+			<label>
+				User Avatar Url
+			</label>
+			<input type='text' name="avatar_url"/>
+			<div class="row">
+				<a href="/battle"
+					class='button'>
+				Cancel
+				</a>
+				<input
+					class='button'
+					type="submit"
+					value='submit'>
+				</input>
+			</div>
+		  </form>
+		</dialog>
+	</div>
+	<div>
+	 <button onclick="opendialog()" class="button" id="opendialog">Double Click to Add User</button>
+	</div>
+</div>
+
+
+</body>
+<script>
+var data = {{data|tojson|safe}};
+var disabled = true;
+var user1;
+var user2;
+
+var availablePlayers = Object.values(data)
+$( function() {
+$( "#player1" ).autocomplete({
+  source: availablePlayers
+});
+$( "#player2" ).autocomplete({
+  source: availablePlayers
+});
+} );
+
+function validation1(value)
+{
+
+ if (!availablePlayers.includes(value.trim()))
+ {
+    document.getElementById('errorname1').innerHTML="Please select a valid user";
+ }
+ else{
+ 	document.getElementById('errorname1').innerHTML=null;
+ }
+
+}
+
+function validation2(value)
+{
+
+ if (!availablePlayers.includes(value.trim()))
+ {
+    document.getElementById('errorname2').innerHTML="Please select a valid user";
+ }
+ else{
+ 	document.getElementById('errorname2').innerHTML=null;
+ }
+
+}
+function validation3(value)
+{
+
+ if (availablePlayers.includes(value.trim()))
+ {
+    document.getElementById('errorname3').innerHTML="User already exisited";
+ }
+ else{
+ 	document.getElementById('errorname3').innerHTML=null;
+ }
+
+}
+
+function opendialog () 
+{
+  var updateButton = document.getElementById('opendialog');
+  var favDialog = document.getElementById('favDialog');
+  var outputBox = document.getElementById("output");
+
+  // “Update details” button opens the <dialog> modally
+  updateButton.addEventListener('click', function() {
+    favDialog.showModal();
+  });
+};
+</script>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+    Project 1 
+  </title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+
+  </head>
+<body>
+<div>
+  <ul class = 'nav'>
+    <li>
+      <a href="/" >Home</a>
+    </li>
+    <li>
+      <a href="/search" >History</a>
+    </li>
+    <li>
+      <a href="/battle" >Battle</a>
+    </li>
+    <li>
+      <a href="/popular" >Popular</a>
+    </li>
+  </ul>
+</div>
+<div class='row' style="margin-top:100px">
+    <div class='column'>
+        <img
+          class='avatar'
+          src={{data['playerOneAvatar']| tojson}}
+          alt={'Avatar for PlayerOne}
+        />
+        <h2 class='username'>{{data['playerOne']|tojson}}</h2>
+
+      <ul class="space-list-items">
+        <li>Followers: {{data['playerOneFollowers']|tojson}}</li>
+        <li>Following: {{data['playerOneFollowing']|tojson}}</li>
+        <li>Public Repos: {{data['playerOneRepos']|tojson}}</li>
+      </ul>
+    </div>
+
+    <div class='column'>
+        <img
+          class='avatar'
+          src={{data['playerTwoAvatar']| tojson}}
+          alt={'Avatar for PlayerTwo}
+        />
+        <h2 class='username'>{{data['playerTwo']|tojson}}</h2>
+      <ul class="space-list-items">
+        <li>Followers: {{data['playerTwoFollowers']|tojson}}</li>
+        <li>Following: {{data['playerTwoFollowing']|tojson}}</li>
+        <li>Public Repos: {{data['playerTwoRepos']|tojson}}</li>
+      </ul>
+    </div>
+</div>
+<div class="row">
+  <h3>{{data['result'] |tojson}} </h3>
+</div>
+
+</body>
+<script>
+  var players = {{data |tojson}};
+  console.log(players)
+</script>
+
+
+</html>

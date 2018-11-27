@@ -36,8 +36,8 @@ app = Flask(__name__, template_folder=tmpl_dir)
 # For your convenience, we already set it to the class database
 
 # Use the DB credentials you received by e-mail
-DB_USER = "YOUR_DB_USERNAME_HERE"
-DB_PASSWORD = "YOUR_DB_PASSWORD_HERE"
+DB_USER = "jz3011"
+DB_PASSWORD = "27abo199"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
@@ -101,94 +101,163 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+
+# Home page
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
 
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
+  return render_template("index.html")
 
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
+# search for battle history
 
-  # DEBUG: this is debugging code to see what request looks like
-  print request.args
+@app.route('/search')
+def search():
 
-
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
+  cursor = g.conn.execute("SELECT login FROM user_profile")
   names = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    names.append(result['login'])  # can also be accessed using result[0]
   cursor.close()
-
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
   context = dict(data = names)
 
+  return render_template("search.html",**context)
 
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
+@app.route('/history',methods=['GET', 'POST'])
+def history():
+  cursor1 = g.conn.execute("SELECT login FROM user_profile")
+  names = []
+  for result in cursor1:
+    names.append(result['login'])  # can also be accessed using result[0]
+  cursor1.close()
+  if request.method == 'POST':
+    username = request.form.get('username')
+    cursor2 = g.conn.execute("SELECT user_login, user_score, enemy_login, enemy_score, winner,battle_id FROM battle_history WHERE user_login='{}'".format(username))
+    data = []
 
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
+    for result in cursor2:
+      data.append({"user_score":result['user_score'],
+                   "user_login":result['user_login'],
+                   "enemy_login":result['enemy_login'],
+                   "enemy_score":result['enemy_score'],
+                   "winner":result['winner'],
+                   "battle_id":result['battle_id']})
+    cursor2.close()
+    return render_template("history.html",data = data) 
+  context = dict(data = names)
+  return render_template("search.html",**context)
 
+# popular repos ordering by star
 
-# Example of adding new data to the database
+@app.route('/popular')
+def popular():
+  cursor = g.conn.execute("""WITH temp as (SELECT * FROM user_own_repo LEFT JOIN user_profile ON (user_own_repo.user_id=user_profile.id))
+                          select rank,m.repo_id,name,login,avatar_url,language,num_folk,num_star, CASE WHEN issues IS NULL THEN 0 ELSE issues END,  CASE WHEN pull_requests IS NULL THEN 0 ELSE pull_requests END
+                          from
+                          (SELECT ROW_NUMBER() OVER (order by num_star DESC) as rank, repo.id as repo_id, login, avatar_url, repo.name as name, language, num_folk, num_star  
+                          FROM repo 
+                          LEFT JOIN temp ON repo.id=temp.repo_id
+                          order by num_star DESC) as m
+                          LEFT JOIN (select temp1.repo_id as repo_id, issues, pull_requests from (select repo_id, count (*) as pull_requests from pull_request group by repo_id) as b left join (select * from repo left join (select repo_id, count (*) as issues from  issue group by repo_id) as a on repo.id=a.repo_id) as temp1 on b.repo_id=temp1.repo_id) as k
+                          ON m.repo_id=k.repo_id""")
+  rank = []
+  for result in cursor:
+    rank.append({"rank":result['rank'],
+                 "repo_id":result['repo_id'],
+                 "repo_name":result['name'],
+                 "user":result['login'],
+                 "avatar_url":result['avatar_url'],
+                 "language": result['language'],
+                 "folk": result['num_folk'],
+                 "star":result['num_star'],
+                 "issues":result['issues'],
+                 "pull_requests":result['pull_requests']})
+  cursor.close()
+  return render_template("popular.html",rank=rank)
+
+@app.route('/results')
+def playerPreview():
+  return render_template("results.html")
+
+# Battle
+
+@app.route('/battle')
+def battle():
+  cursor = g.conn.execute("SELECT login FROM user_profile")
+  names = []
+  for result in cursor:
+    names.append(result['login'])  # can also be accessed using result[0]
+  cursor.close()
+
+  context = dict(data = names)
+
+  return render_template("battle.html", **context)
+
+# Get One player's information
+@app.route('/getPlayers', methods=['GET', 'POST']) #allow both GET and POST requests
+def getPlayers():
+    if request.method == 'POST':  #this block is only entered when the form is submitted
+        playerOne = request.form.get('playerOne')
+        playerTwo = request.form.get('playerTwo')
+
+        cursor1 = g.conn.execute("SELECT following, followers, num_pub_repos , avatar_url FROM user_profile where login = '{}'".format(playerOne))
+        cursor2 = g.conn.execute("SELECT following, followers, num_pub_repos , avatar_url FROM user_profile where login = '{}'".format(playerTwo))
+        for result in cursor1:
+          playerOneFollowing= result['following']
+          playerOneFollowers= result['followers']
+          playerOneRepos= result['num_pub_repos']
+          playerOneAvatar= result['avatar_url']
+        for result in cursor2:
+          playerTwoFollowing= result['following']
+          playerTwoFollowers= result['followers']
+          playerTwoRepos= result['num_pub_repos']
+          playerTwoAvatar= result['avatar_url']
+        cursor1.close()
+        cursor2.close()
+
+        playerOneScore= playerOneFollowing + 10*playerOneFollowers + 30*playerOneRepos
+        playerTwoScore= playerTwoFollowing + 10*playerTwoFollowers + 30*playerTwoRepos
+
+        if playerOneScore >playerTwoScore:
+          gameResult = 'Winner is ' + playerOne
+          winner = playerOne
+        elif playerOneScore < playerTwoScore:
+          gameResult = 'Winner is ' + playerTwo
+          winner = playerTwo
+        else:
+          gameResult = 'Tie'
+          winner = 'Tie'
+
+        cursor3 = g.conn.execute("SELECT COUNT(*) as total_num FROM battle_history ");
+        for result in cursor3:
+          battle_id = int(result['total_num'])
+        cursor3.close()
+        g.conn.execute("INSERT INTO battle_history VALUES ({},{},'{}','{}','{}',{})".format(playerOneScore,playerTwoScore,playerOne,playerTwo,winner,battle_id+1));
+
+        data = {"playerOne":playerOne, "playerTwo":playerTwo,
+                "playerOneAvatar":playerOneAvatar, "playerTwoAvatar": playerTwoAvatar, 
+                "playerOneFollowing":playerOneFollowing, "playerTwoFollowing":playerTwoFollowing,
+                "playerOneFollowers":playerOneFollowers, "playerTwoFollowers":playerTwoFollowers,
+                "playerOneRepos":playerOneRepos,"playerTwoRepos":playerTwoRepos,
+                "result":gameResult, "total":battle_id}
+        return render_template("results.html", data = data  )
+
+    return render_template("battle.html", **context)
+
+# Add a new User
 @app.route('/add', methods=['POST'])
 def add():
+  login = request.form['login']
   name = request.form['name']
-  print name
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
-
-
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
-
+  repos = request.form['repos']
+  followers = request.form['followers']
+  followings = request.form['followings']
+  avatar_url = request.form['avatar_url']
+  cursor1 = g.conn.execute("SELECT max(id) as max_id FROM user_profile ");
+  for result in cursor1:
+    user_id = int(result['max_id'])
+  cursor1.close()
+  g.conn.execute("INSERT INTO user_profile VALUES ({},'{}','{}',{},{},{},'{}')".format(user_id+1,login,name,repos,followers,followings, avatar_url));
+  return redirect('/battle')
 
 if __name__ == "__main__":
   import click

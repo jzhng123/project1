@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+    Project 1 
+  </title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  </head>
+<body>
+<div>
+  <ul class = 'nav'>
+    <li>
+      <a href="/" >Home</a>
+    </li>
+    <li>
+      <a href="/search" >History</a>
+    </li>
+    <li>
+      <a href="/battle" >Battle</a>
+    </li>
+    <li>
+      <a href="/popular" >Popular</a>
+    </li>
+  </ul>
+</div>
+<center><h1>Search User Battle History</h1></center>
+<div class="row" style="margin-top:100px">
+    <form class='column' method="POST" action="/history" >
+      <label class='header'>
+        Search User Battle History
+      </label>
+
+      <input id='search' placeholder='github username' onchange="validation1(this.value)" 
+           type='text' autoComplete='off' name = "username"
+      /><span style="color:red" id="errorname1"></span>
+      <input
+        class='button'
+        type="submit"
+        value='Search'>
+      </input>
+    </form>
+</div>
+
+
+</body>
+<script>
+var data = {{data|tojson|safe}};
+var availablePlayers = Object.values(data)
+$( function() {
+$( "#search" ).autocomplete({
+  source: availablePlayers
+});
+});
+
+function validation1(value)
+{
+
+ if (!availablePlayers.includes(value.trim()))
+ {
+    document.getElementById('errorname1').innerHTML="Please select a valid user";
+ }
+ else{
+  document.getElementById('errorname1').innerHTML=null;
+ }
+
+}
+</script>
+
+</html>
